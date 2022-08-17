@@ -433,11 +433,6 @@ function upgrade_status_obsolete(&$projects, $project) {
       $projects[$project]['replaced_by'][0]['name'] = 'colorapi';
       break;
 
-    case 'content_profile':
-      $projects[$project]['obsolete_since'] = '7.x';
-      $projects[$project]['replaced_by'][0]['name'] = 'profile2';
-      break;
-
     case 'data_export_import':
     case 'node_export':
       $projects[$project]['obsolete_since'] = '8.x';
@@ -480,11 +475,6 @@ function upgrade_status_obsolete(&$projects, $project) {
     case 'facetapi':
       $projects[$project]['obsolete_since'] = '8.x';
       $projects[$project]['replaced_by'][0]['name'] = 'facets';
-      break;
-
-    case 'fckeditor':
-      $projects[$project]['obsolete_since'] = '5.x';
-      $projects[$project]['replaced_by'][0]['name'] = 'ckeditor';
       break;
 
     case 'field_collection':
@@ -575,12 +565,6 @@ function upgrade_status_obsolete(&$projects, $project) {
       $projects[$project]['replaced_by'][0]['name'] = 'access_by_ref';
       break;
 
-    case 'nodewords':
-      $projects[$project]['obsolete_since'] = '7.x';
-      $projects[$project]['replaced_by'][0]['name'] = 'metatag';
-      $projects[$project]['replaced_by'][1]['name'] = 'metatags_quick';
-      break;
-
     case 'og':
       $projects[$project]['obsolete_since'] = '8.x';
       $projects[$project]['replaced_by'][0]['name'] = 'group';
@@ -589,11 +573,6 @@ function upgrade_status_obsolete(&$projects, $project) {
     case 'panels_extra_styles':
       $projects[$project]['obsolete_since'] = '8.x';
       $projects[$project]['replaced_by'][0]['name'] = 'panels_extra_styles_d8';
-      break;
-
-    case 'path_redirect':
-      $projects[$project]['obsolete_since'] = '7.x';
-      $projects[$project]['replaced_by'][0]['name'] = 'redirect';
       break;
 
     case 'print':
