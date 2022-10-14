@@ -72,6 +72,11 @@ function theme_upgrade_status_report($variables) {
   }
 
   foreach ($data as $project) {
+    // Handle projects with no includes element.
+    if (empty($project['includes'])){
+      $project['includes'] = array();
+    }
+
     // Skip this module.
     if ($project['name'] == 'upgrade_status') {
       continue;
