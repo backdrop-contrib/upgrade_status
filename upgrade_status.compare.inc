@@ -557,7 +557,7 @@ function upgrade_status_moved_into_core(&$projects, $project) {
 
   switch ($core_version) {
     case '8.9.x':
-    case '9.4.x':
+    case '9.5.x':
     case '10.0.x':
       return _upgrade_status_d8_core($projects, $project);
       break;
