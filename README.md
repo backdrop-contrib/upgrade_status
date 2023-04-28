@@ -1,5 +1,7 @@
 # Upgrade Status Documentation
 
+I ran this through coder upgrade.  It does not work yet.  There are challenges with connecting to a different repo to grab the drupal modules.  We may also have machine name conflicts between Backdrop and Drupal.
+
 ## Usage
 
 Go to Administer >> Reports >> Available updates >> Upgrade status and check the status of your installed modules there. If you've checked some of your projects out from Git, you will need the Git Deploy (http://drupal.org/project/git_deploy) module in order for this module to be
