@@ -1,6 +1,6 @@
 # Upgrade Status Documentation
 
-I ran this through coder upgrade.  It does not work yet.  There are challenges with connecting to a different repo to grab the drupal modules.  We may also have machine name conflicts between Backdrop and Drupal.
+I ran this through coder upgrade.  It does not work yet.  There are challenges with connecting to a different repo to grab the drupal modules.  We may also have machine name conflicts between Backdrop and Drupal.  Part of the Drupal 7 soft landing initiative.
 
 ## Usage
 
