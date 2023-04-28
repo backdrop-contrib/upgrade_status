@@ -9,6 +9,20 @@
  * Implements hook_install().
  */
 function upgrade_status_install() {
-  $queue = DrupalQueue::get('upgrade_status_fetch_tasks', TRUE);
+  $queue = BackdropQueue::get('upgrade_status_fetch_tasks', TRUE);
   $queue->createQueue();
+  // Dynamically generated variable data was detected on the following lines.
+}
+
+/**
+ * Migrate upgrade_status variables to config.
+ */
+function upgrade_status_update_1000() {
+  $config = config('upgrade_status.settings');
+  $config->set('upgrade_status_core_version', update_variable_get('upgrade_status_core_version', 'UPGRADE_STATUS_CORE_VERSION'));
+  $config->set('upgrade_status_last_check', update_variable_get('upgrade_status_last_check', '0'));
+  $config->save();
+
+  update_variable_del('upgrade_status_core_version');
+  update_variable_del('upgrade_status_last_check');
 }

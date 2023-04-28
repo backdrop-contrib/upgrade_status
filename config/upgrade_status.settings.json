@@ -1,0 +1,5 @@
+{
+    "_config_name": "upgrade_status.settings",
+    "upgrade_status_core_version": "UPGRADE_STATUS_CORE_VERSION",
+    "upgrade_status_last_check": "0"
+}

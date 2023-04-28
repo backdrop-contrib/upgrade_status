@@ -36,7 +36,7 @@ use Composer\Semver\Semver;
  */
 function upgrade_status_calculate_project_data($available) {
   // Retrieve the projects from cache, if present.
-#  $projects = update_project_cache('upgrade_status_project_data');
+  #  $projects = update_project_cache('upgrade_status_project_data');
   // US: Directly use private cache getter to skip Update's cache invalidation.
   $projects = _update_cache_get('upgrade_status_project_data');
   // If $projects is empty, then the cache must be rebuilt.
@@ -77,10 +77,10 @@ function upgrade_status_calculate_project_data($available) {
   // Give other modules a chance to alter the status (for example, to allow a
   // contrib module to provide fine-grained settings to ignore specific
   // projects or releases).
-  drupal_alter('update_status', $projects);
+  backdrop_alter('update_status', $projects);
 
   // US: Same for us, afterwards.
-  drupal_alter('upgrade_status', $projects);
+  backdrop_alter('upgrade_status', $projects);
 
   // Cache the site's update status for at most 1 hour.
   _update_cache_set('upgrade_status_project_data', $projects, REQUEST_TIME + 3600);
@@ -116,12 +116,12 @@ function upgrade_status_calculate_project_update_status($project, &$project_data
         $project_data['extra'][] = array(
           'class' => array('project-not-secure'),
           'label' => t('Project not secure'),
-          'data' => t('This project has been labeled insecure by the Drupal security team, and is no longer available for download. Immediately disabling everything included by this project is strongly recommended!'),
+          'data' => t('This project has been labeled insecure by the Backdrop security team, and is no longer available for download. Immediately disabling everything included by this project is strongly recommended!'),
         );
         break;
-      // US: Maintainers are doing lots of nightmares with in development
-      // releases, so we have to take unpublished, revoked, and unsupported
-      // into account.
+        // US: Maintainers are doing lots of nightmares with in development
+        // releases, so we have to take unpublished, revoked, and unsupported
+        // into account.
       case 'unpublished':
       case 'revoked':
       case 'unsupported':
@@ -159,11 +159,11 @@ function upgrade_status_calculate_project_update_status($project, &$project_data
     $available['releases'] = array();
   }
 
-  $target_core = variable_get('upgrade_status_core_version', UPGRADE_STATUS_CORE_VERSION);
+  $target_core = config_get('upgrade_status.settings', 'upgrade_status_core_version');
   $target_core_contrib = str_replace('x', '100', $target_core);
   $target_core_core = str_replace('.x', '', $target_core);
   foreach ($available['releases'] as $version => $release) {
-    if ($project == 'drupal') {
+    if ($project == 'backdrop') {
       // Core versions are matched from the version value directly.
       if (!Semver::satisfies($release['version'], '~' . $target_core_core)) {
         continue;
@@ -175,7 +175,7 @@ function upgrade_status_calculate_project_update_status($project, &$project_data
     }
     $project_data['releases'][$version] = $release;
 
-     if (!strpos($release['version'], '-dev') && !strpos($release['version'], '-alpha') && !strpos($release['version'], '-beta') && !isset($project_data['recommended'])) {
+    if (!strpos($release['version'], '-dev') && !strpos($release['version'], '-alpha') && !strpos($release['version'], '-beta') && !isset($project_data['recommended'])) {
       // Latest compatible RC or stable version is considered recommended.
       $project_data['recommended'] = $version;
     }
@@ -207,7 +207,7 @@ function upgrade_status_calculate_project_update_status($project, &$project_data
 
   // US: Skip security update status handling.
 
-  // US: Check new Drupal core improvements, regardless of what's figured out
+  // US: Check new Backdrop core improvements, regardless of what's figured out
   // below.
   if (upgrade_status_moved_into_core($projects, $project)) {
     $project_data += $projects[$project];
@@ -223,11 +223,11 @@ function upgrade_status_calculate_project_update_status($project, &$project_data
   // If we don't know what to recommend, there's nothing we can report.
   // Bail out early.
   // US: Commenting this out causes core to work again. Hm.
-#  if (!isset($project_data['recommended'])) {
-#    $project_data['status'] = UPDATE_UNKNOWN;
-#    $project_data['reason'] = t('No available releases found');
-#    return;
-#  }
+  #  if (!isset($project_data['recommended'])) {
+  #    $project_data['status'] = UPDATE_UNKNOWN;
+  #    $project_data['reason'] = t('No available releases found');
+  #    return;
+  #  }
 
   // US: Ignore dev snapshot handling.
 
@@ -553,7 +553,7 @@ function upgrade_status_moved_into_core(&$projects, $project) {
   // Set the oldest version's data first, so that the latest version of core may
   // update the previous version's information.
   // @todo What about modules moved into core and then back out?
-  $core_version = variable_get('upgrade_status_core_version', UPGRADE_STATUS_CORE_VERSION);
+  $core_version = config_get('upgrade_status.settings', 'upgrade_status_core_version');
 
   switch ($core_version) {
     case '8.9.x':
@@ -567,7 +567,7 @@ function upgrade_status_moved_into_core(&$projects, $project) {
 }
 
 /**
- * Modules in core in Drupal 8.
+ * Modules in core in Backdrop 8.
  *
  * @see upgrades_status_moved_into_core()
  */
@@ -706,7 +706,7 @@ function _upgrade_status_d8_core(&$projects, $project) {
 
     case 'migrate':
     case 'migrate_d2d':
-    case 'migrate_drupal':
+    case 'migrate_backdrop':
       $projects[$project]['in_core_since'] = '8.x';
       break;
 
@@ -731,7 +731,7 @@ function _upgrade_status_d8_core(&$projects, $project) {
     case 'panelizer':
       $projects[$project]['in_core_since'] = '8.5';
       $projects[$project]['in_core_complete'] = TRUE;
-       $projects[$project]['in_core_note'] = t('Use the Layout Builder core module.');
+      $projects[$project]['in_core_note'] = t('Use the Layout Builder core module.');
       break;
 
     case 'phone':
@@ -766,7 +766,7 @@ function _upgrade_status_d8_core(&$projects, $project) {
 
     case 'schemaorg':
       $projects[$project]['in_core_since'] = '8.x';
-      $projects[$project]['in_core_note'] = t('The default RDF mappings of Drupal core have been updated to include schema.org in Drupal 8. Also, a lot of the backend code of this module was ported into Drupal 8 core. The user interface that allows one to set the mappings now lives in the <a href="@url">RDF UI</a> module.', array(
+      $projects[$project]['in_core_note'] = t('The default RDF mappings of Backdrop core have been updated to include schema.org in Backdrop 8. Also, a lot of the backend code of this module was ported into Backdrop 8 core. The user interface that allows one to set the mappings now lives in the <a href="@url">RDF UI</a> module.', array(
         '@url' => 'https://www.drupal.org/project/rdfui',
       ));
       break;
@@ -813,7 +813,7 @@ function _upgrade_status_d8_core(&$projects, $project) {
       $projects[$project]['in_core_since'] = '8.6';
       $projects[$project]['in_core_note'] = t('While <a href="@change_record">Views integration for the Datetime Range module</a> is now in core, <a href="@granularity">Views Date Filter Datetime Granularity Option</a> is still missing.', array(
         '@change_record' => 'https://www.drupal.org/node/2857691',
-        '@granularity' => 'https://www.drupal.org/project/drupal/issues/2868014',
+        '@granularity' => 'https://www.drupal.org/project/backdrop/issues/2868014',
       ));
       break;
 
@@ -826,7 +826,7 @@ function _upgrade_status_d8_core(&$projects, $project) {
     case 'views_responsive_grid':
       $projects[$project]['in_core_since'] = '8.x';
       $projects[$project]['in_core_complete'] = TRUE;
-      $projects[$project]['in_core_note'] = t('This module will not be ported to Drupal 8. Views grids in core have been replaced with DIVs.');
+      $projects[$project]['in_core_note'] = t('This module will not be ported to Backdrop 8. Views grids in core have been replaced with DIVs.');
       break;
 
     case 'wysiwyg':
@@ -880,7 +880,7 @@ function _upgrade_status_d8_core(&$projects, $project) {
     case 'jquery_update':
     case 'jqmulti':
       $projects[$project]['in_core_since'] = '8.x';
-      $projects[$project]['in_core_note'] = t('No longer needed in Drupal 8 onwards, which ships with the latest version of the library. The shipped version is updated, with backwards compatibility, in minor releases.');
+      $projects[$project]['in_core_note'] = t('No longer needed in Backdrop 8 onwards, which ships with the latest version of the library. The shipped version is updated, with backwards compatibility, in minor releases.');
       $projects[$project]['in_core_complete'] = TRUE;
       break;
 

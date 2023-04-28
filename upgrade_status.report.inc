@@ -22,7 +22,7 @@ function upgrade_status_status() {
   else {
     // US: Inlined _update_no_data().
     // @todo: File an upstream patch for that.
-    $destination = drupal_get_destination();
+    $destination = backdrop_get_destination();
     $data = t('No upgrade information available.');
     return theme('upgrade_status_report', array('data' => $data));
   }
@@ -45,8 +45,8 @@ function theme_upgrade_status_report($variables) {
   $current_data = update_get_available(TRUE);
 
   // US: Add the core version selector form.
-  $form = drupal_get_form('upgrade_status_core_version_form');
-  $output = drupal_render($form);
+  $form = backdrop_get_form('upgrade_status_core_version_form');
+  $output = backdrop_render($form);
 
   if (!is_array($data)) {
     $output .= '<p>' . $data . '</p>';
@@ -57,13 +57,13 @@ function theme_upgrade_status_report($variables) {
   $rows = array();
 
   // US: We don't do anything with notifications in this module.
-#  $notification_level = variable_get('update_notification_threshold', 'all');
+  #  $notification_level = variable_get('update_notification_threshold', 'all');
 
   // Create an array of status values keyed by module or theme name, since
   // we'll need this while generating the report if we have to cross reference
   // anything (e.g. subthemes which have base themes missing an update).
   foreach ($data as $project) {
-    if (empty($project['includes'])){
+    if (empty($project['includes'])) {
       $project['includes'] = array();
     }
     foreach ($project['includes'] as $key => $name) {
@@ -73,7 +73,7 @@ function theme_upgrade_status_report($variables) {
 
   foreach ($data as $project) {
     // Handle projects with no includes element.
-    if (empty($project['includes'])){
+    if (empty($project['includes'])) {
       $project['includes'] = array();
     }
 
@@ -87,8 +87,8 @@ function theme_upgrade_status_report($variables) {
       case UPDATE_CURRENT:
       case UPGRADE_STATUS_STABLE:
       case UPGRADE_STATUS_CORE:
-      // @todo: Colour obsolete modules according to their replacement project
-      // info in $data.
+        // @todo: Colour obsolete modules according to their replacement project
+        // info in $data.
       case UPGRADE_STATUS_OBSOLETE:
         $class = 'ok';
         break;
@@ -97,16 +97,16 @@ function theme_upgrade_status_report($variables) {
       case UPDATE_NOT_FETCHED:
         $class = 'unknown';
         break;
-      // US: Not used/not possible here.
+        // US: Not used/not possible here.
       case UPDATE_NOT_SECURE:
       case UPDATE_REVOKED:
       case UPDATE_NOT_SUPPORTED:
       case UPGRADE_STATUS_UNAVAILABLE:
         $class = 'error';
         break;
-      // US: It doesn't make sense to output a whole page of warning symbols,
-      // so we just colorize as a warning without the icon. This allows us to
-      // warn about projects moved into core and other important info.
+        // US: It doesn't make sense to output a whole page of warning symbols,
+        // so we just colorize as a warning without the icon. This allows us to
+        // warn about projects moved into core and other important info.
       case UPGRADE_STATUS_DEVELOPMENT:
         $class = 'warning';
         break;
@@ -132,7 +132,7 @@ function theme_upgrade_status_report($variables) {
         $project_label .= check_plain($project['title']);
       }
     }
-    // US: Couldn't find this project's data for the next version of Drupal core.
+    // US: Couldn't find this project's data for the next version of Backdrop core.
     // Let's try the current one instead.
     elseif (isset($current_data[$project['name']]) && isset($current_data[$project['name']]['title'])) {
       if (isset($current_data[$project['name']]['link'])) {
@@ -177,7 +177,7 @@ function theme_upgrade_status_report($variables) {
             break;
 
           default:
-            $base_themes[] = drupal_placeholder($base_theme);
+            $base_themes[] = backdrop_placeholder($base_theme);
         }
       }
       $project_label .= t('Depends on: !basethemes', array('!basethemes' => implode(', ', $base_themes)));
@@ -201,9 +201,9 @@ function theme_upgrade_status_report($variables) {
     // UPGRADE STATUS ----------------------------------------------------------
     $upgrade_status = !empty($project['reason']) ? $project['reason'] : t('Unknown');
     if (!empty($project['in_core_since'])) {
-      $upgrade_status = '<p>'. t('In Drupal core since @version', array('@version' => $project['in_core_since'])) .'</p>';
+      $upgrade_status = '<p>' . t('In Backdrop core since @version', array('@version' => $project['in_core_since'])) . '</p>';
       if (!empty($project['in_core_note'])) {
-        $upgrade_status .= '<p>'. $project['in_core_note'] .'</p>';
+        $upgrade_status .= '<p>' . $project['in_core_note'] . '</p>';
       }
     }
     elseif (isset($project['replaced_by'])) {
@@ -222,7 +222,7 @@ function theme_upgrade_status_report($variables) {
     if (!isset($rows[$project['project_type']])) {
       $rows[$project['project_type']] = array();
     }
-    $row_key = isset($project['title']) ? drupal_strtolower($project['title']) : drupal_strtolower($project['name']);
+    $row_key = isset($project['title'])?backdrop_strtolower($project['title']) : backdrop_strtolower($project['name']);
     $rows[$project['project_type']][$row_key] = array(
       'class' => array($class),
       'data' => $row,
@@ -230,7 +230,7 @@ function theme_upgrade_status_report($variables) {
   }
 
   $project_types = array(
-    'core' => t('Drupal core'),
+    'core' => t('Backdrop core'),
     'module' => t('Modules'),
     'theme' => t('Themes'),
     'module-disabled' => t('Disabled modules'),
@@ -240,11 +240,11 @@ function theme_upgrade_status_report($variables) {
     if (!empty($rows[$type_name])) {
       ksort($rows[$type_name]);
       $output .= "\n<h3>" . $type_label . "</h3>\n";
-       $output .= theme('table', ['header' => $header, 'rows' => $rows[$type_name], 'attributes' => ['class' => ['upgrade-status-table']]]);
+      $output .= theme('table', ['header' => $header, 'rows' => $rows[$type_name], 'attributes' => ['class' => ['upgrade-status-table']]]);
     }
   }
-  drupal_add_css(drupal_get_path('module', 'update') . '/update.css');
-  drupal_add_css(drupal_get_path('module', 'upgrade_status') . '/upgrade_status.css');
+  backdrop_add_css(backdrop_get_path('module', 'update') . '/update.css');
+  backdrop_add_css(backdrop_get_path('module', 'upgrade_status') . '/upgrade_status.css');
   return $output;
 }
 
@@ -266,37 +266,37 @@ function theme_upgrade_status_status_label($variables) {
 
   switch ($variables['status']) {
     // US: Not applicable.
-#    case UPDATE_NOT_SECURE:
-#      return '<span class="security-error">' . t('Security update required!') . '</span>';
+    #    case UPDATE_NOT_SECURE:
+    #      return '<span class="security-error">' . t('Security update required!') . '</span>';
 
     // US: Not applicable.
-#    case UPDATE_REVOKED:
-#      return '<span class="revoked">' . t('Revoked!') . '</span>';
+    #    case UPDATE_REVOKED:
+    #      return '<span class="revoked">' . t('Revoked!') . '</span>';
 
     // Although unsupported releases should actually be unsupported, we treat
     // them like development releases, since many maintainers merely use this
-    // additional flag to hide the release from novice Drupal users.
+    // additional flag to hide the release from novice Backdrop users.
     case UPGRADE_STATUS_DEVELOPMENT:
     case UPDATE_NOT_SUPPORTED:
-#      return '<span class="not-supported">' . t('Not supported!') . '</span>';
+      #      return '<span class="not-supported">' . t('Not supported!') . '</span>';
       // US: Additionally output the "development stage" of a project; alpha,
       // beta, and RC are all treated as in development.
       $version = $project['releases'][$project['recommended']]['version'];
-      return '<span class="not-current">'. t('In development: %version', array('%version' => $version)) .'</span>';
+      return '<span class="not-current">' . t('In development: %version', array('%version' => $version)) . '</span>';
 
-    // US: Not applicable.
-#    case UPDATE_NOT_CURRENT:
-#      return '<span class="not-current">' . t('Update available') . '</span>';
+      // US: Not applicable.
+      #    case UPDATE_NOT_CURRENT:
+      #      return '<span class="not-current">' . t('Update available') . '</span>';
 
-    // US: Good news for us means that a stable release is available...
-#    case UPDATE_CURRENT:
-#      return '<span class="current">' . t('Up to date') . '</span>';
+      // US: Good news for us means that a stable release is available...
+      #    case UPDATE_CURRENT:
+      #      return '<span class="current">' . t('Up to date') . '</span>';
     case UPGRADE_STATUS_STABLE:
       $version = $project['releases'][$project['recommended']]['version'];
-      return '<span class="current">'. t('Available: %version', ['%version' => $version]) .'</span>';
+      return '<span class="current">' . t('Available: %version', ['%version' => $version]) . '</span>';
 
-    // US: ...or that a module's been moved into core.
+      // US: ...or that a module's been moved into core.
     case UPGRADE_STATUS_CORE:
-      return '<span class="current">'. t('In core') .'</span>';
+      return '<span class="current">' . t('In core') . '</span>';
   }
 }

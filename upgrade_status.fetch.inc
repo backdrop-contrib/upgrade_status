@@ -24,7 +24,7 @@ function upgrade_status_manual_status() {
     'title' => t('Checking available upgrade data'),
     'progress_message' => t('Trying to check available upgrade data ...'),
     'error_message' => t('Error checking available upgrade data.'),
-    'file' => drupal_get_path('module', 'upgrade_status') . '/upgrade_status.fetch.inc',
+    'file' => backdrop_get_path('module', 'upgrade_status') . '/upgrade_status.fetch.inc',
   );
   batch_set($batch);
   batch_process('admin/reports/updates/upgrade');
@@ -37,7 +37,7 @@ function upgrade_status_manual_status() {
  *   Reference to an array used for Batch API storage.
  */
 function upgrade_status_fetch_data_batch(&$context) {
-  $queue = DrupalQueue::get('upgrade_status_fetch_tasks');
+  $queue = BackdropQueue::get('upgrade_status_fetch_tasks');
   if (empty($context['sandbox']['max'])) {
     $context['finished'] = 0;
     $context['sandbox']['max'] = $queue->numberOfItems();
@@ -82,7 +82,8 @@ function upgrade_status_fetch_data_batch(&$context) {
  * Attempts to drain the queue of tasks for release history data to fetch.
  */
 function _upgrade_status_fetch_data() {
-  $queue = DrupalQueue::get('upgrade_status_fetch_tasks');
+  $queue = BackdropQueue::get('upgrade_status_fetch_tasks');
+  // TODO This variable was probably removed in Backdrop without replacement.
   $end = time() + variable_get('update_max_fetch_time', UPDATE_MAX_FETCH_TIME);
   while (time() < $end && ($item = $queue->claimItem())) {
     _upgrade_status_process_fetch_task($item->data);
@@ -104,7 +105,7 @@ function _upgrade_status_fetch_data() {
  */
 function _upgrade_status_process_fetch_task($project) {
   global $base_url;
-  $fail = &drupal_static(__FUNCTION__, array());
+  $fail = &backdrop_static(__FUNCTION__, array());
   // This can be in the middle of a long-running batch, so REQUEST_TIME won't
   // necessarily be valid.
   $now = time();
@@ -116,19 +117,20 @@ function _upgrade_status_process_fetch_task($project) {
     }
   }
 
+  // TODO This variable was probably removed in Backdrop without replacement.
   $max_fetch_attempts = variable_get('update_max_fetch_attempts', UPDATE_MAX_FETCH_ATTEMPTS);
 
   $success = FALSE;
   $available = array();
   // US: No site key to avoid hi-jacking module usage statistics.
-#  $site_key = drupal_hmac_base64($base_url, drupal_get_private_key());
+  #  $site_key = backdrop_hmac_base64($base_url, backdrop_get_private_key());
   // US: However, we want to check against a future core version.
   $url = _upgrade_status_build_fetch_url($project);
   $fetch_url_base = _update_get_fetch_url_base($project);
   $project_name = $project['name'];
 
   if (empty($fail[$fetch_url_base]) || $fail[$fetch_url_base] < $max_fetch_attempts) {
-    $xml = drupal_http_request($url);
+    $xml = backdrop_http_request($url);
     if (!isset($xml->error) && isset($xml->data)) {
       $data = $xml->data;
     }
@@ -151,6 +153,7 @@ function _upgrade_status_process_fetch_task($project) {
     }
   }
 
+  // TODO This variable was probably removed in Backdrop without replacement.
   $frequency = variable_get('update_check_frequency', 1);
   $cid = 'upgrade_status_available_releases::' . $project_name;
   _update_cache_set($cid, $available, $now + (60 * 60 * 24 * $frequency));
@@ -159,7 +162,7 @@ function _upgrade_status_process_fetch_task($project) {
   _update_cache_set('upgrade_status_fetch_failures', $fail, $now + (60 * 5));
 
   // Whether this worked or not, we did just (try to) check for updates.
-  variable_set('upgrade_status_last_check', $now);
+  config_set('upgrade_status.settings', 'upgrade_status_last_check', $now);
 
   // Now that we processed the fetch task for this project, clear out the
   // record in {cache_update} for this task so we're willing to fetch again.
@@ -229,13 +232,13 @@ function _upgrade_status_refresh() {
  * @see _upgrade_status_process_fetch_task()
  */
 function _upgrade_status_create_fetch_task($project) {
-  $fetch_tasks = &drupal_static(__FUNCTION__, array());
+  $fetch_tasks = &backdrop_static(__FUNCTION__, array());
   if (empty($fetch_tasks)) {
     $fetch_tasks = _update_get_cache_multiple('upgrade_status_fetch_task');
   }
   $cid = 'upgrade_status_fetch_task::' . $project['name'];
   if (empty($fetch_tasks[$cid])) {
-    $queue = DrupalQueue::get('upgrade_status_fetch_tasks');
+    $queue = BackdropQueue::get('upgrade_status_fetch_tasks');
     $queue->createItem($project);
     // Due to race conditions, it is possible that another process already
     // inserted a row into the {cache_update} table and the following query will
@@ -245,9 +248,9 @@ function _upgrade_status_create_fetch_task($project) {
     try {
       db_insert('cache_update')
           ->fields(array(
-            'cid' => $cid,
-            'created' => REQUEST_TIME,
-          ))
+        'cid' => $cid,
+        'created' => REQUEST_TIME,
+      ))
           ->execute();
     }
     catch (Exception $e) {

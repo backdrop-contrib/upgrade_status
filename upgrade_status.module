@@ -3,7 +3,7 @@
 /**
  * @file
  * Checks to see if your installed modules are available for a selected major
- * release of Drupal.
+ * release of Backdrop.
  */
 
 /**
@@ -37,7 +37,7 @@ define('UPGRADE_STATUS_OBSOLETE', 3000);
 define('UPGRADE_STATUS_UNAVAILABLE', 6000);
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function upgrade_status_menu() {
   $items['admin/reports/updates/upgrade'] = array(
@@ -46,13 +46,13 @@ function upgrade_status_menu() {
     'access arguments' => array('administer site configuration'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 10,
-    'file' => 'upgrade_status.report.inc'
+    'file' => 'upgrade_status.report.inc',
   );
   return $items;
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function upgrade_status_theme() {
   return array(
@@ -185,17 +185,29 @@ function _upgrade_status_get_cached_available_releases() {
 }
 
 /**
- * Form to display Drupal core version selection.
+ * Implements hook_config_info().
+ */
+function upgrade_status_config_info() {
+  $prefixes['upgrade_status.settings'] = array(
+    'label' => t('Upgrade Status settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
+/**
+ * Form to display Backdrop core version selection.
  */
 function upgrade_status_core_version_form($form, &$form_state) {
-  $last = variable_get('upgrade_status_last_check', 0);
+  $config = config('upgrade_status.settings');
+  $last = $config->get('upgrade_status_last_check');
 
   $form['upgrade_status_core_version'] = array(
     '#type' => 'select',
     '#title' => t('Check upgrade status to version'),
-    '#options' => drupal_map_assoc(array('8.9.x', '9.5.x', '10.0.x')),
-    '#default_value' => variable_get('upgrade_status_core_version', UPGRADE_STATUS_CORE_VERSION),
-    '#description' => $last ? t('Last checked: @time ago', array('@time' => format_interval(REQUEST_TIME - $last))) : t('Last checked: never'),
+    '#options' => backdrop_map_assoc(array('8.9.x', '9.5.x', '10.0.x')),
+    '#default_value' => $config->get('upgrade_status_core_version'),
+    '#description' => $last?t('Last checked: @time ago', array('@time' => format_interval(REQUEST_TIME - $last))) : t('Last checked: never'),
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -205,13 +217,37 @@ function upgrade_status_core_version_form($form, &$form_state) {
 }
 
 /**
- * Set the new Drupal core version in a variable; refresh project data.
+ * Set the new Backdrop core version in a variable; refresh project data.
  *
  * @todo Why do we do these shenanigans with the variable and not just let
  * system_settings_form_submit do its thang?
  */
 function upgrade_status_core_version_form_submit($form, &$form_state) {
-  variable_set('upgrade_status_core_version', $form_state['values']['upgrade_status_core_version']);
+  config_set('upgrade_status.settings', 'upgrade_status_core_version', $form_state['values']['upgrade_status_core_version']);
   module_load_include('inc', 'upgrade_status', 'upgrade_status.fetch');
   upgrade_status_manual_status();
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function upgrade_status_autoload_info() {
+  return array(
+    'ClassLoader' => 'lib/vendor/composer/ClassLoader.php',
+    'InstalledVersions' => 'lib/vendor/composer/InstalledVersions.php',
+    'ComposerAutoloaderInit212e1fd6a37b0aefbc78876acc0df267' => 'lib/vendor/composer/autoload_real.php',
+    'ComposerStaticInit212e1fd6a37b0aefbc78876acc0df267' => 'lib/vendor/composer/autoload_static.php',
+    'Comparator' => 'lib/vendor/composer/semver/src/Comparator.php',
+    'CompilingMatcher' => 'lib/vendor/composer/semver/src/CompilingMatcher.php',
+    'Bound' => 'lib/vendor/composer/semver/src/Constraint/Bound.php',
+    'Constraint' => 'lib/vendor/composer/semver/src/Constraint/Constraint.php',
+    'ConstraintInterface' => 'lib/vendor/composer/semver/src/Constraint/ConstraintInterface.php',
+    'MatchAllConstraint' => 'lib/vendor/composer/semver/src/Constraint/MatchAllConstraint.php',
+    'MatchNoneConstraint' => 'lib/vendor/composer/semver/src/Constraint/MatchNoneConstraint.php',
+    'MultiConstraint' => 'lib/vendor/composer/semver/src/Constraint/MultiConstraint.php',
+    'Interval' => 'lib/vendor/composer/semver/src/Interval.php',
+    'Intervals' => 'lib/vendor/composer/semver/src/Intervals.php',
+    'Semver' => 'lib/vendor/composer/semver/src/Semver.php',
+    'VersionParser' => 'lib/vendor/composer/semver/src/VersionParser.php',
+  );
 }

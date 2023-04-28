@@ -1,5 +1,6 @@
 name = Upgrade Status
 description = Checks to see if the installed modules are available for the next major version of Drupal.
-core = 7.x
+backdrop = 1.x
+type = module
 dependencies[] = drupal:update
 configure = admin/reports/updates/upgrade
